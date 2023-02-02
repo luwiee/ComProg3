@@ -10,6 +10,12 @@
      * • The program will then ask the user if he/she wants to search for another host (if yes, repeat the
      * process above, otherwise, exit the program)
  *
+ * Solution:
+ * 1. Get host from user input
+ * 2. In a try catch, get the INetAddress Arayy using the getAllByName() function and catch the exception and return
+ *      to Step 1 if invalid host.
+ * 3. Show the number of ip address of the host by getting the length of the array
+ * 4. Iterate through the InetAdress Objects of the Array and Output their host address using getHostAddress()
  *
  */
 package prelim;
@@ -23,10 +29,12 @@ public class pexer1 {
         run();
     }
 
+
     private static void run() {
-        Scanner kbd = new Scanner(System.in);
+        Scanner kbd = new Scanner(System.in); // For getting user input
         int currentHostNumber = 1; // Stores the current host number
 
+        // To run infinitely until user says no
         while (true){
             // Get the Input Host from the user
             System.out.print("Host " + currentHostNumber + " - Type IP address/Hostname: ");
