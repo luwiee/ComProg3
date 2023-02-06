@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Date: 04/02/2023
@@ -26,42 +28,45 @@ import java.net.Socket;
  * Run the ClientHandler in a new thread
  */
 public class ServerExer2 {
-    public static void main(String[] args) {
-        runServer();
+    private static final int MAX_THREADS = 10;
+    private ServerSocket server;
+    private Executor executor;
+
+    public ServerExer2(int port) {
+        try {
+            server = new ServerSocket(port);
+            executor = Executors.newFixedThreadPool(MAX_THREADS);
+            System.out.println("Server started on port: " + port);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
-    private static void runServer() {
-        ServerSocket server = null;
-        int port = 2000;
-        try {
-            server = new ServerSocket(port); // Start listening on Server Port
-            server.setReuseAddress(true);
-
-            // Infinite Loop to run indefinitely
-            do {
+    public void start() {
+        // Infinite Loop to run indefinitely
+        do {
+            try {
                 // Get Client Socket
                 Socket client = server.accept();
 
                 // Output that a new client has connected
-                System.out.println("New client connected" + client.getInetAddress().getHostAddress());
+                System.out.println("New client connected: " + client.getInetAddress().getHostAddress());
 
                 // Create a new ClientHandler object and pass the socket object of the new connection
                 ClientHandler clientSock = new ClientHandler(client);
 
-                // Run a thread for that ClientHandler Object that contains the client socket object
-                new Thread(clientSock).start();
-            } while (true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (server != null) {
-                try {
-                    server.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                // Use the executor to run a task for that ClientHandler Object that contains the client socket object
+                executor.execute(clientSock);
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
             }
-        }
+        } while (true);
+    }
+
+    public static void main(String[] args) {
+        int port = 8080;
+        ServerExer2 server = new ServerExer2(port);
+        server.start();
     }
 
     /**
@@ -69,7 +74,7 @@ public class ServerExer2 {
      * This is where the original code for processing input from the client has been moved into to
      * support multiple clients.
      */
-    private static class ClientHandler implements Runnable {
+    private class ClientHandler implements Runnable {
         private final Socket clientSocket; // Contains the passed Client Socket upon instantiation of ClientHandler
 
         // Constructor
